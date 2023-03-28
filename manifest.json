@@ -1,0 +1,29 @@
+{
+  "name": "BSD Copy Paste",
+  "version": "1.04", 
+  "manifest_version": 3, 
+  "description": "Copy grades from Canvas to Synergy!",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "images/arrow-128.png",
+    "default_locale": "en",
+    "description": "Copy grades a column of marks from Canvas, paste to Synergy."
+  },
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "icons": {
+    "16": "images/arrow-16.png",
+    "32": "images/arrow-32.png",
+    "48": "images/arrow-48.png",
+    "64": "images/arrow-64.png",
+    "128": "images/arrow-128.png"
+  },
+  "permissions": ["activeTab", "scripting", "storage", "tabs", "contextMenus"],
+   "content_scripts": [
+  {
+    "matches": ["https://synergy.beaverton.k12.or.us/*","https://syntrn.beaverton.k12.or.us/*"],
+    "js": ["scripts/jquery-3.6.3.min.js","scripts/synergy.js"],
+    "run_at": "document_start"
+  }]
+}

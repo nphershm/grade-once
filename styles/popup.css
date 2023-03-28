@@ -1,0 +1,70 @@
+body {
+    width: 500px;
+    margin: 10px 10px 10px 20px;
+    background:#4c4b4b;
+    color: white;
+    text-align: left;
+}
+
+div#header {
+    width: 100%;
+    height: 32px;
+    display: inline-block;
+    background: url(../images/arrow-32.png) no-repeat;
+}
+
+div h6 {
+    margin-left: 40px;
+}
+
+div#alert {
+    padding: 10px;
+}
+
+button {
+    background: #008cff;
+    color: white;
+    width: 100px;
+    height: 40px;
+    display: block;
+    margin: 5px auto;
+    float: left;
+}
+
+div#assign_select {
+    width: 590px;
+    display: inline-block;
+}
+
+div#rubrics_overview {
+    display: inline-block
+}
+
+div#assign_scores {
+    display: inline-block;
+}
+
+div#processing {
+    float: left;
+    margin: 5px auto;
+    text-align: center;
+    width: 400px
+}
+
+div#processing img {
+    height: 40px;
+    float: left;
+}
+
+div#how_to {
+    width: 500px;
+    display: inline-block;
+}
+
+a, a:visited {
+    color: #008cff;
+}
+
+a:hover {
+    color: #6fbdfd
+}
