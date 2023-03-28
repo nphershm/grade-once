@@ -7,7 +7,7 @@
     "default_popup": "popup.html",
     "default_icon": "images/arrow-128.png",
     "default_locale": "en",
-    "description": "Copy grades a column of marks from Canvas, paste to Synergy."
+    "description": "Copy rubric scores for an assignment from Canvas, paste into a column in Synergy."
   },
   "background": {
     "service_worker": "scripts/background.js"
