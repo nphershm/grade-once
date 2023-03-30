@@ -114,7 +114,7 @@ async function getAssignments(course_id) {
     assignments = [];
     showLoader(true)
     while (data_length == page_n) {
-        let url = `${base_url}/api/v1/courses/${course_id}/assignments?page=${page}&per_page=${page_n}`
+        let url = `${base_url}/api/v1/courses/${course_id}/assignments?order_by=due_at&page=${page}&per_page=${page_n}`
         console.log(`fetch assignments with: ${url}`)
         let res = await fetch(url);
         let data = await JSON.parse(await res.text());
@@ -146,6 +146,8 @@ async function getAssignments(course_id) {
         }
         page++;
     }
+
+    assignments = assignments.reverse() // most recent first.
     console.log(`Assignments found: ${assignments.length}`)
     showLoader(false)
     return(assignments)  
