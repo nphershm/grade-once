@@ -29,6 +29,13 @@ button {
     display: block;
     margin: 5px auto;
     float: left;
+    border: none;
+    border-left: 10px solid white;
+    padding: 0;
+}
+
+button:hover {
+    font-weight: bolder;
 }
 
 div#assign_select {
