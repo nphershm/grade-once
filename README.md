@@ -1,5 +1,5 @@
 # bsd-copy-paste
-Chrome extension to provide copy>paste for BSD teachers from canvas to synergy.
+Chrome extension to provide copy>paste for BSD teachers from canvas to synergy. See [This youtube demo](https://youtu.be/ZI-WODo4dOI)
 
 This extension uses the Canvas API to fetch assignments, submissions and students from canvas. The extension uses the student data to match student's canvas user_id with their synergy student_id and update all submissions results to include their synergy_id. Submissions results consist of the set of available outcome scores for each student on a given assignment.
 
@@ -8,3 +8,6 @@ Once Canvas data is fetched it is updated and sent to service_worker (background
 # Active Development
 
 1. Focus on making extension more responsive and fixing issues that result from periods of inactivity (causes service_worker to go unresponsive)
+2. Make design changes that improve consistency across app
+3. Changes to support docs
+4. Testing app in real gradebook environments
