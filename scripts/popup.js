@@ -135,7 +135,8 @@ async function getAssignments(course_id) {
                     'due_at': e.due_at 
                 }
                 
-                if (assignment.use_rubric_for_grading) {
+                // only include assignments that have defined rubrics.
+                if (assignment.use_rubric_for_grading | assignment.rubric != undefined) {
                     assignments.push(assignment)
                 } else {
                     console.log(`Skipping ${assignment.name} because it does not use a rubric.`)
