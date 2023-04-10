@@ -391,7 +391,7 @@ async function getOutcomes(course_id) {
                     'canvas_id': o.links.user,
                     'course_id': course_id,
                     'assign_id': 'outcomes',
-                    'assign_name': '&#9989; Outcome Results from Learning Mastery &#9989;',
+                    'assign_name': 'Outcome Results from Learning Mastery',
                     'status': o.links.status,
                     'section':o.links.section,
                     'rubric_assessment': rubrics,
@@ -475,7 +475,7 @@ async function getOutcomeAssignment(course_id) {
         'id': 'outcomes',
         'late': false,
         'missing':false,
-        'name': '&#9989; Outcome Results from Learning Mastery &#9989;',
+        'name': 'Outcome Results from Learning Mastery',
         'points_possible': points_possible,
         'rubric': rubrics,
         'use_rubric_for_grading': true
