@@ -45,12 +45,12 @@ function update_assign_select(assignments, assign_id_selected = 0) {
             .append($('<option></option>')
             .attr('value',assignment.id)
             .attr('selected', true)
-            .text(name))
+            .html(name))
         } else {
             $('div#assign_select select')
             .append($('<option></option>')
             .attr('value',assignment.id)
-            .text(name))
+            .html(name))
         }
     })
 
@@ -148,6 +148,10 @@ async function getAssignments(course_id) {
         page++;
     }
 
+    // add outcome_assignment
+    let outcome_assignment = await getOutcomeAssignment(course_id)
+    assignments.push(outcome_assignment)
+
     assignments = assignments.reverse() // most recent first.
     console.log(`Assignments found: ${assignments.length}`)
     showLoader(false)
@@ -230,57 +234,60 @@ async function getSubmissions(course_id, assignments, assign_id) {
     let data_length = page_n
     let submissions = []
     let assignment = getAssignmentById(assignments, assign_id)
-    
-    while (data_length == page_n) {
-        let url = `${base_url}/api/v1/courses/${course_id}/assignments/${assign_id}/submissions?include[]=rubric_assessment&page=${page}&per_page=${page_n}`
-        // console.log(`Fetching ${url}`)
-        let res = await fetch(url)
-        let text = await res.text()
-        let data = await JSON.parse(text)
-        // console.log(data)
-        data_length = data.length
-        data.forEach((s) => {
-            let submission = {}
-            // console.log(`s: ${JSON.stringify(s)}`)
-            // console.log(`s.ra: ${JSON.stringify(s.rubric_assessment)}`)
 
-            // s is a score... s.rubric_assessment: object {_id, }
-            try {
-                if ('rubric_assessment' in s) {
-                   submission = {
-                        'course_id': course_id,
-                        'canvas_id': s.user_id,
-                        'assign_id': s.assignment_id,
-                        'assign_name': assignment.name,
-                        'rubric_assessment': s.rubric_assessment,
-                        'excused': s.excused,
-                        'late' : s.late,
-                        'missing': s.missing,
-                        'grading_per': s.grading_period_id,
-                   }
-                } else {
-                   submission = {
-                        'course_id': course_id,
-                        'canvas_id': s.user_id,
-                        'synergy_id': s.synergy_id,
-                        'assign_id': s.assignment_id,
-                        'assign_name': assignment.name,
-                        'score': '',
-                        'excused': s.excused,
-                        'late' : s.late,
-                        'missing': s.missing,
-                        'grading_per': s.grading_period_id,
-                   }
+    if (assign_id == 'outcomes') {
+        submissions = await getOutcomes(course_id)
+    } else {
+        while (data_length == page_n) {
+            let url = `${base_url}/api/v1/courses/${course_id}/assignments/${assign_id}/submissions?include[]=rubric_assessment&page=${page}&per_page=${page_n}`
+            // console.log(`Fetching ${url}`)
+            let res = await fetch(url)
+            let text = await res.text()
+            let data = await JSON.parse(text)
+            // console.log(data)
+            data_length = data.length
+            data.forEach((s) => {
+                let submission = {}
+                // console.log(`s: ${JSON.stringify(s)}`)
+                // console.log(`s.ra: ${JSON.stringify(s.rubric_assessment)}`)
+
+                // s is a score... s.rubric_assessment: object {_id, }
+                try {
+                    if ('rubric_assessment' in s) {
+                    submission = {
+                            'course_id': course_id,
+                            'canvas_id': s.user_id,
+                            'assign_id': s.assignment_id,
+                            'assign_name': assignment.name,
+                            'rubric_assessment': s.rubric_assessment,
+                            'excused': s.excused,
+                            'late' : s.late,
+                            'missing': s.missing,
+                            'grading_per': s.grading_period_id,
+                    }
+                    } else {
+                    submission = {
+                            'course_id': course_id,
+                            'canvas_id': s.user_id,
+                            'synergy_id': s.synergy_id,
+                            'assign_id': s.assignment_id,
+                            'assign_name': assignment.name,
+                            'score': '',
+                            'excused': s.excused,
+                            'late' : s.late,
+                            'missing': s.missing,
+                            'grading_per': s.grading_period_id,
+                    }
+                    }
+                } catch (e) {
+                    console.log(`Error on score: ${JSON.stringify(s)}\nWith error: ${e}`)
                 }
-            } catch (e) {
-                console.log(`Error on score: ${JSON.stringify(s)}\nWith error: ${e}`)
-            }
-            if (Object.keys(submission).length > 0) {
-                submissions.push(submission)
-            }
-        });
-        page++;
-        
+                if (Object.keys(submission).length > 0) {
+                    submissions.push(submission)
+                }
+            });
+            page++;
+        }
     }
     console.log(`Submissions found: ${submissions.length}`)
     submissions = add_synergy_id(submissions, students)
@@ -349,6 +356,124 @@ async function getStudents(course_id) {
     console.log(`Students found: ${students.length}`)
     // console.log(students[3])
     return(students)
+}
+
+// adding support for Overall Outcomes
+async function getOutcomes(course_id) {
+    var outcomes_url = `${base_url}/api/v1/courses/${course_id}/outcome_rollups`
+    var outcomes = []
+    var results = 1
+    let url = `${outcomes_url}`
+    console.log(`Fetching ${url}`)
+    var obj = await fetch(url)
+    var data = JSON.parse(await obj.text())
+    data.rollups.forEach((o) => {
+        try {
+            if (o.scores.length > 0) {
+    
+                let rubrics = []
+    
+                o.scores.forEach((s) => {
+                    // let rubric = {}
+                    rubrics[String(s.links.outcome)] = {'points': s.score}
+                    // rubrics.push(rubric)
+                })
+    
+                let outcome = {
+                    'canvas_id': o.links.user,
+                    'course_id': course_id,
+                    'assign_id': 'outcomes',
+                    'assign_name': '&#9989; Outcome Results from Learning Mastery &#9989;',
+                    'status': o.links.status,
+                    'section':o.links.section,
+                    'rubric_assessment': rubrics,
+                    'scores': o.scores
+                }
+    
+                if (outcome.status == 'active') {
+                    outcomes.push(outcome)
+                }
+            }
+        } catch(e) {
+            console.log('Failed to add score with error: ',e)
+        }
+    })
+    
+    results = data.rollups.length
+    console.log(`results of length: ${results}`)
+    return outcomes
+}
+
+async function getOutcomeRubrics(course_id) {
+    url =`${base_url}/api/v1/courses/${course_id}/rubrics?per_page=100&page=1`
+    var obj = await fetch(url)
+    var rubric_obj = {}
+    var data = JSON.parse(await obj.text())
+    console.log('data', data)
+    data.forEach((r, index) => {
+        r.data.forEach((rubric) => {
+            // rubrics[rubric.learning_outcome_id] = {
+            rubric_obj[rubric.learning_outcome_id] = {
+                'id': String(rubric.learning_outcome_id),
+                'description': rubric.description,
+                'long_description': rubric.long_description,
+                'points': rubric.points
+            }
+            // rubrics.push(my_rubric)
+        })
+    })
+
+
+    console.log('rubric_obj:',rubric_obj)
+    
+    // TODO get this sort to sort on description... so targets appear in alpha order...
+    let descriptions = []
+    Object.keys(rubric_obj).forEach((k) => {
+        descriptions.push(rubric_obj[k].description)
+    })
+
+    descriptions = descriptions.sort() // descriptions are alpha sorted
+
+    // create rubrics in order of our sorted descriptions
+    let rubrics = []
+    descriptions.forEach((d) => {
+        Object.keys(rubric_obj).forEach((k) => {
+            if (rubric_obj[k].description == d) {
+                rubrics.push(rubric_obj[k])
+            }
+        })
+    })
+
+
+    // Object.keys(rubric_obj).sort().forEach((key) =>{
+    //     rubrics.push(rubric_obj[key])
+    // })
+
+    console.log(`${Object.keys(rubrics).length} rubrics found!`)
+    console.log(rubrics)
+    return rubrics
+}
+
+async function getOutcomeAssignment(course_id) {
+    let rubrics = await getOutcomeRubrics(course_id)
+    let points_possible = 0
+    Object.keys(rubrics).forEach((key) => {
+        points_possible += rubrics[key].points
+    })
+    let assignment = {
+        'course_id': course_id,
+        'due_at': (new Date).toISOString(),
+        'excused': false,
+        'id': 'outcomes',
+        'late': false,
+        'missing':false,
+        'name': '&#9989; Outcome Results from Learning Mastery &#9989;',
+        'points_possible': points_possible,
+        'rubric': rubrics,
+        'use_rubric_for_grading': true
+    }
+
+    return assignment
 }
 
 function getAssignmentNameFromSubmissions(submissions) {
