@@ -360,24 +360,32 @@ async function getStudents(course_id) {
 
 // adding support for Overall Outcomes
 async function getOutcomes(course_id) {
-    var outcomes_url = `${base_url}/api/v1/courses/${course_id}/outcome_rollups`
+    let url = `${base_url}/api/v1/courses/${course_id}/outcome_rollups`
     var outcomes = []
     var results = 1
-    let url = `${outcomes_url}`
     console.log(`Fetching ${url}`)
     var obj = await fetch(url)
     var data = JSON.parse(await obj.text())
     data.rollups.forEach((o) => {
+
+        console.log('Outcome: ', o)
         try {
             if (o.scores.length > 0) {
     
-                let rubrics = []
+                let rubrics = {}
     
                 o.scores.forEach((s) => {
                     // let rubric = {}
-                    rubrics[String(s.links.outcome)] = {'points': s.score}
+                    console.log('Score: ', s)
+                    if (!(s.links.outcome in Object.keys(rubrics))) {
+                        rubrics[s.links.outcome] = {'points': s.score}
+                    } else {
+                        // already have outcome.
+                    }
                     // rubrics.push(rubric)
                 })
+
+                console.log('Adding rubrics', rubrics)
     
                 let outcome = {
                     'canvas_id': o.links.user,
