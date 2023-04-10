@@ -98,16 +98,17 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
     return scores
 }
 
+// needs to convert 1, 2, 3 and 1.33, 2.66/7 (?), 4 scores
 const use_cgr = (scores) => {
     console.log(`Converting scores to CI, G, R behavior scores.`)
     scores.forEach((s) =>{
         if (s.score == '') {
             // pass
-        } else if (s.score == 1) {
+        } else if (s.score < 1.5) {
             s.score = 'R'
-        } else if (s.score == 2) {
+        } else if (s.score < 2.75) {
             s.score = 'G'
-        } else if (s.score == 3) {
+        } else if (s.score >= 3) {
             s.score = 'CI'
         }
     })
