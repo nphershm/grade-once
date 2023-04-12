@@ -117,7 +117,15 @@ const add_comment_codes_to_score = (score) => {
         if (['CI','G','R'].includes(my_score)) {
             rounded_score = my_score
         } else {
-            rounded_score = Math.round(my_score)
+            // rounded_score = Math.round(my_score)
+            // rick options
+            decimal_cutoff = 0.5
+            if (my_score - Math.floor(my_score) < decimal_cutoff) {
+                rounded_score = Math.floor(my_score)
+            } else {
+                rounded_score = Math.round(my_score)
+            }
+
         }
     } catch(e) {
         console.log(`${my_score} hit error while rounding`, e)
