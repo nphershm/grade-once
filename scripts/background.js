@@ -106,9 +106,9 @@ const use_cgr = (scores) => {
             // pass
         } else if (s.score < 1.5) {
             s.score = 'R'
-        } else if (s.score < 2.75) {
+        } else if (s.score < 2.5) {
             s.score = 'G'
-        } else if (s.score >= 3) {
+        } else if (s.score >= 2.5) {
             s.score = 'CI'
         }
     })

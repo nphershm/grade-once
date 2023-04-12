@@ -110,6 +110,22 @@ async function asyncForEach(array, callback) {
 // TODO: update late/missing/exc processing
 const add_comment_codes_to_score = (score) => {
     let my_score = score.score
+
+    // Outcome scores are coming in rounded... fix that with rounding the score
+    let rounded_score = ''
+    try {
+        if (['CI','G','R'].includes(my_score)) {
+            rounded_score = my_score
+        } else {
+            rounded_score = Math.round(my_score)
+        }
+    } catch(e) {
+        console.log(`${my_score} hit error while rounding`, e)
+        rounded_score = my_score
+    }
+
+    console.log('my_score and rounded_score', my_score, rounded_score)
+
     if (score.excused) {
         return (`Exc`)
     }
@@ -119,10 +135,10 @@ const add_comment_codes_to_score = (score) => {
     }
 
     if (score.late) {
-        return(`${my_score} La`)
+        return(`${rounded_score} La`)
     }
 
-    return(`${my_score} !`) // score is not exc, missing, late in canvas
+    return(`${rounded_score} !`) // score is not exc, missing, late in canvas
 }
 
 function getScore(scores, id) {
