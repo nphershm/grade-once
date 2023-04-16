@@ -37,9 +37,14 @@ function update_assign_select(assignments, assign_id_selected = 0) {
     assignments.forEach((assignment, index) => {
         console.log(`Appending assignment ${index}, ${assignment.id}, ${assignment.name}`)
         let name = assignment.name;
-        if (name.length > 50) {
-            name = name.slice(0,50)+'...'
+        try {
+            if (name.length > 50) {
+                name = name.slice(0,50)+'...'
+            }
+        } catch(e) {
+            console.log('Assignment name.length errors with',e)
         }
+        
         if (assign_id_selected == assignment.id) {
             $('div#assign_select select')
             .append($('<option></option>')

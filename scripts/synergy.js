@@ -108,7 +108,7 @@ async function asyncForEach(array, callback) {
 
 
 // TODO: update late/missing/exc processing
-const add_comment_codes_to_score = (score) => {
+const add_comment_codes_to_score = (score, roundUpFrom) => {
     let my_score = score.score
 
     // Outcome scores are coming in rounded... fix that with rounding the score
@@ -117,10 +117,11 @@ const add_comment_codes_to_score = (score) => {
         if (['CI','G','R'].includes(my_score)) {
             rounded_score = my_score
         } else {
+            
             // rounded_score = Math.round(my_score)
-            // rick options
-            decimal_cutoff = 0.5
-            if (my_score - Math.floor(my_score) < decimal_cutoff) {
+            // rick's suggestion on rounding
+
+            if (my_score - Math.floor(my_score) < roundUpFrom) {
                 rounded_score = Math.floor(my_score)
             } else {
                 rounded_score = Math.round(my_score)
@@ -132,7 +133,7 @@ const add_comment_codes_to_score = (score) => {
         rounded_score = my_score
     }
 
-    console.log('my_score and rounded_score', my_score, rounded_score)
+    // console.log('my_score and rounded_score', my_score, rounded_score)
 
     if (score.excused) {
         return (`Exc`)
@@ -179,7 +180,7 @@ function synergy_env_ready() {
     return(ready)
 }
 
-async function synergy_paste(scores) {
+async function synergy_paste(scores, roundUpFrom) {
     console.log('Processing synergy paste with scores...',scores)
 
     let col_index = $(window.frames[0].document.activeElement).closest('td').attr('aria-colindex')
@@ -198,7 +199,7 @@ async function synergy_paste(scores) {
     })
 
     scores.forEach((score) => {
-        score.score = add_comment_codes_to_score(score)
+        score.score = add_comment_codes_to_score(score, roundUpFrom)
     })
 
     // console.log(`score_ids ${score_ids} & col: ${col_index}`);
@@ -262,7 +263,7 @@ function myListener(request, sender, sendResponse) {
         console.log(`Synergy.js received request from background with request.attachment:`)
         console.log(request.attachment)
         if (synergy_env_ready()) {
-            synergy_paste(request.attachment)
+            synergy_paste(request.attachment, request.roundUpFrom)
             .then((response) =>{
                 sendResponse('Synergy.js made you a paste!')
             })

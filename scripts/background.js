@@ -8,6 +8,22 @@
 //     return scores[0].rubric_id
 // }
 
+async function getRoundingDecimal() {
+    let p = new Promise((resolve, reject) => {
+        chrome.storage.sync.get(
+            keys = {
+                roundUpFrom: 0.5
+            },
+            (items) => {
+                chrome.runtime.lastError
+                ? reject(Error(chrome.runtime.lastError.message))
+                : resolve (items.roundUpFrom)
+            }
+        )
+    })
+    return p
+}
+
 function getAssignmentIdFromSubmissions(submissions) {
     return submissions[0].assign_id
 }
@@ -28,10 +44,6 @@ function getAssignmentById(assignments, assign_id) {
     }
     
     return my_assign
-}
-
-function getAssignmentIdFromSubmissions(scores) {
-    return scores[0].assign_id
 }
 
 const getRubrics = (assignment) => {
@@ -99,18 +111,21 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
 }
 
 // needs to convert 1, 2, 3 and 1.33, 2.66/7 (?), 4 scores
-const use_cgr = (scores) => {
+const use_cgr = (scores, roundUpFrom) => {
     console.log(`Converting scores to CI, G, R behavior scores.`)
     scores.forEach((s) =>{
+        let before = s.score
         if (s.score == '') {
             // pass
-        } else if (s.score < 1.5) {
+        } else if (s.score < 1+roundUpFrom) {
             s.score = 'R'
-        } else if (s.score < 2.5) {
+        } else if (s.score < 2+roundUpFrom) {
             s.score = 'G'
-        } else if (s.score >= 2.5) {
+        } else if (s.score >= 2+roundUpFrom) {
             s.score = 'CI'
         }
+        let after = s.score
+        console.log(`cgr converted ${before} to ${after}`)
     })
     return(scores)
 }
@@ -179,8 +194,13 @@ async function call_syn_paste(tabId, submissions, rubric_id, convert_scores_to_c
     console.log(`call_syn_paste received: tabId, submissions, rubric_id, convert_scores_to_cgr:`, tabId, submissions, rubric_id, convert_scores_to_cgr)
 
     let scores = getScoresFromSubmissionsByRubricId(submissions, rubric_id)
+
+    let roundUpFrom = await getRoundingDecimal()
+
+    console.log(`bg call_syn_paste, roundUpFrom (${roundUpFrom})`)
+    // unfortunately this call is proceeding without getting the roundingDecimall... consider using then and wrapping.
     if (convert_scores_to_cgr) {
-        scores = use_cgr(scores)
+        scores = use_cgr(scores, roundUpFrom)
     }
 
     let my_message = {
@@ -188,19 +208,9 @@ async function call_syn_paste(tabId, submissions, rubric_id, convert_scores_to_c
         to: 'synergy.js',
         title: 'synergy_paste',
         body: 'Please paste values now',
+        roundUpFrom: roundUpFrom,
         attachment: scores
-    }; 
-
-    // console.log('scores: ',scores)
-    // console.log('tabId: ',tabId)
-    // console.log('my_message: ',my_message)
-
-
-    //Error:  Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
-    // console.log(`call_syn_paste w/ tabId, scores`)
-    // console.log(tabId)
-    // TODO solve: response is undefined.... not getting response back.
-    // Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+    }
 
     chrome.tabs.sendMessage(tabId, my_message, (response) => {
         console.log(`bg asked tab ${tabId} for paste with ${scores.length} scores and heard: ${response}`)
@@ -262,15 +272,25 @@ function setupContextMenu(assignments, submissions) {
         });
 
     rubrics.forEach((r, index) => {
+        let alt_code, alt_text
+        alt_code = r.alt_code
+        
+        if (r.alt_text == null) {
+            alt_text = '(no outcome description available)'
+        } else {
+            alt_text = r.alt_text.slice(0, 35)
+        }
+        
         chrome.contextMenus.create(
-        createProperties = {
-            id: r.id, 
-            parentId: 'assignment',
-            title: `${r.alt_code} - ${r.alt_text.slice(0,35)}`,
-            contexts: ["editable"],
-            type: 'normal',
-            documentUrlPatterns: ["https://synergy.beaverton.k12.or.us/*","https://syntrn.beaverton.k12.or.us/*"]
-        });
+            createProperties = {
+                id: r.id, 
+                parentId: 'assignment',
+                title: `${alt_code} - ${alt_text}`,
+                contexts: ["editable"],
+                type: 'normal',
+                documentUrlPatterns: ["https://synergy.beaverton.k12.or.us/*","https://syntrn.beaverton.k12.or.us/*"]
+            }
+        )
     })
     addContextListener()
 }
