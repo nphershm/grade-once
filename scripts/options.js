@@ -36,6 +36,19 @@ $('#amount').on('input',() => {
     
 })
 
+if (window.history.length > 1) {
+  $('#back').text('Back')
+  $('#back').on('click',() => {
+    window.history.go(-1)
+  })
+} else {
+  $('#back').text('Close tab')
+  $('#back').on('click',() => {
+    window.close()
+  })
+}
+
+
 
 const saveOptions = () => {
   var rounding = $('#rounding').slider('value');

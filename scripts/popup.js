@@ -615,6 +615,10 @@ $('#clear_btn button').click(() => {
     clear_button_click()
 })
 
+function updateRounding(rounded = 0.5) {
+    $('#overall_rounding').html(`<p>Rounding <em>up</em> decimals at and above <b>${rounded}<b>.</p>`)
+}
+
 /*
     When popup is opened, check to see if canvas data already exists in the backbground... 
     and if so, update the popup view.
@@ -672,15 +676,17 @@ let my_message = {
     body: 'do you have any submissions?'
 }
 
-chrome.runtime.sendMessage(my_message, (my_submissions) => {
-    if (Object.keys(my_submissions).length > 0) {
-        submissions = my_submissions
+chrome.runtime.sendMessage(my_message, (response) => {
+    let roundUpFrom = response.roundUpFrom
+    let submissions = response.submissions
+    if (Object.keys(submissions).length > 0) {
         if (assignments.length > 0) {
             course_id = getCourseIdFromAssignments(assignments)
             update_rubric_list(assignments, submissions)
             let assign_id = getAssignmentIdFromSubmissions(submissions)
             update_assign_select(assignments, assign_id)
             update_submissions_overview(submissions)
+            updateRounding(roundUpFrom)
         } else {
             console.log(`submissions received but no assignments sent... problem!`)
         }

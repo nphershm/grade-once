@@ -51,6 +51,11 @@ div#assign_scores {
     display: inline-block;
 }
 
+div#overall_rounding {
+    width: 100%;
+    display: inline-block;
+}
+
 div#processing {
     float: left;
     margin: 5px auto;
@@ -69,9 +74,9 @@ div#how_to {
 }
 
 a, a:visited {
-    color: #008cff;
+    color: #bae0ff;
 }
 
 a:hover {
-    color: #6fbdfd
+    color: #6abcff;
 }

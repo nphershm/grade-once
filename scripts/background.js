@@ -365,7 +365,14 @@ function mainListener(request, sender, sendResponse) {
                 bg_get_assignments().then((assignments) => {
                     setupContextMenu(assignments, submissions)
                 })
-                sendResponse(submissions)
+                getRoundingDecimal().then((roundUpFrom) => {
+                    let response = {
+                        'roundUpFrom': roundUpFrom,
+                        'submissions': submissions
+                    }
+                    sendResponse(response)
+                })
+                
             }
         })
         return true
