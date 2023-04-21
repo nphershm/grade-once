@@ -616,7 +616,8 @@ $('#clear_btn button').click(() => {
 })
 
 function updateRounding(rounded = 0.5) {
-    $('#overall_rounding').html(`<p>Rounding <em>up</em> decimals at and above <b>${rounded}<b>.</p>`)
+    let rounded_txt = String(rounded).slice(1)
+    $('#overall_rounding').html(`<p>Rounding <em>up</em> decimals at and above <a href="options.html">${rounded_txt}<a></p>`)
 }
 
 /*
