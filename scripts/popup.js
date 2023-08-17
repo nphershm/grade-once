@@ -145,6 +145,7 @@ async function getAssignments(course_id) {
                     assignments.push(assignment)
                 } else {
                     console.log(`Skipping ${assignment.name} because it does not use a rubric.`)
+                    // console.log(e)
                 }
             })
         } else {
@@ -259,7 +260,7 @@ async function getSubmissions(course_id, assignments, assign_id) {
                 // s is a score... s.rubric_assessment: object {_id, }
                 try {
                     if ('rubric_assessment' in s) {
-                    submission = {
+                        submission = {
                             'course_id': course_id,
                             'canvas_id': s.user_id,
                             'assign_id': s.assignment_id,
@@ -269,9 +270,9 @@ async function getSubmissions(course_id, assignments, assign_id) {
                             'late' : s.late,
                             'missing': s.missing,
                             'grading_per': s.grading_period_id,
-                    }
+                        }
                     } else {
-                    submission = {
+                        submission = {
                             'course_id': course_id,
                             'canvas_id': s.user_id,
                             'synergy_id': s.synergy_id,
@@ -282,7 +283,7 @@ async function getSubmissions(course_id, assignments, assign_id) {
                             'late' : s.late,
                             'missing': s.missing,
                             'grading_per': s.grading_period_id,
-                    }
+                        }
                     }
                 } catch (e) {
                     console.log(`Error on score: ${JSON.stringify(s)}\nWith error: ${e}`)
@@ -313,6 +314,7 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
     submissions.forEach((s) => {
         let score = {}
         try {
+            // when scores were marked excused there may not be a rubric attached...
             if ('rubric_assessment' in s) {
                 Object.keys(s.rubric_assessment).forEach((r) => {
                     if (r == rubric_id) {
@@ -330,7 +332,21 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
                         }
                     }
                 })
+            } else if (s.excused | s.missing) {
+                score = {
+                    'course_id': s.course_id,
+                    'canvas_id': s.canvas_id,
+                    'synergy_id': s.synergy_id,
+                    'assign_id': s.assign_id,
+                    'rubric_id' : rubric_id,
+                    'score': '',
+                    'excused': s.excused,
+                    'late' : s.late,
+                    'missing': s.missing,
+                    'grading_per': s.grading_per,
+                }    
             }
+
         } catch (e) {
             console.log(`Error on score extract ${e}`)
             console.log(s)
@@ -422,6 +438,7 @@ async function getOutcomeRubrics(course_id) {
     var obj = await fetch(url)
     var rubric_obj = {}
     var data = JSON.parse(await obj.text())
+    console.log(`getOutcomeRubrics calling ${url}`)
     console.log('data', data)
     data.forEach((r, index) => {
         r.data.forEach((rubric) => {
