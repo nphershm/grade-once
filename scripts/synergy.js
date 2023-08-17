@@ -35,56 +35,6 @@ var getActiveElement = function( document ){
     return false
 }
 
-// async function update_score(score, row_index, col_index) {
-//     // console.log('frames[0]: ', window.frames[0])
-//     // console.log('window.frames: ', window.frames)
-//     // console.log('window.frames[0].jQuery("div"): ', window.frames[0].jQuery('div'));
-
-    
-//     // console.log(`Can I locate the col selected? ${myInput} with ${col_index}, ${row_index} and sis: ${bsd_sis}`);
-//     // alert(`Found assignment title: ${colId}`);
-
-//     //Loop through students in Synergy
-//     // console.log('Student IDs found...');
-//     // table = window.frames[0].jQuery('.dx-datagrid-rowsview table');
-
-//     // window.frames[0].jQuery('.dx-datagrid-rowsview table')
-//     // .find('tr[aria-rowindex="8"] td[aria-colindex="11"] div.asgn-cell-wrap')
-//     // .click().find('input').val(2).trigger('change')
-
-//     // var myEl = table
-//     // .find('tr[aria-rowindex="'+row_index+'"] td[aria-colindex="'+col_index+'"] div.asgn-cell-wrap');
-    
-    
-//     // console.log(myEl[0]);
-    
-//     // Try hard-coded change:
-
-//     console.log(`window: ${window}`);
-//     console.log(`Try to click at (r, c) = (${row_index}, ${col_index})`);
-    
-//     // should I use .eq(0) here or no?
-//     // let table = window.top.frames[0].jQuery('.dx-datagrid-rowsview table');
-//     let table = $(window.frames[0]).find('.dx-datagrid-rowsview table');
-
-//     // let table3 = document.getElementsByTagName('.dx-datagrid-rowsview table');
-//     // console.log(`Table == table2: ${table == table2}`);
-
-//     table
-//     .find('tr[aria-rowindex="'+row_index+'"]')
-//     .find('td[aria-colindex="'+col_index+'"]')
-//     .find('div.asgn-cell-wrap')
-//     .click()
-//     .find('input')
-//     .val(score)
-//     .trigger('change');
-//     //.trigger('blur');
-
-//     // await delay(300);
-//     // console.log('Score cell change sent... 0.1 second wait over...');
-//     return(`Score in row ${row_index} col ${col_index} updated to ${score}`);
-// }
-
 const waitFor = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function asyncForEach(array, callback) {
@@ -114,10 +64,9 @@ const add_comment_codes_to_score = (score, roundUpFrom) => {
     // Outcome scores are coming in rounded... fix that with rounding the score
     let rounded_score = ''
     try {
-        if (['CI','G','R'].includes(my_score)) {
+        if (['CI','G','R','N',''].includes(my_score)) {
             rounded_score = my_score
         } else {
-            
             // rounded_score = Math.round(my_score)
             // rick's suggestion on rounding
 
@@ -135,16 +84,18 @@ const add_comment_codes_to_score = (score, roundUpFrom) => {
 
     // console.log('my_score and rounded_score', my_score, rounded_score)
 
+    console.log('Testing score values',score,score.excused, score.missing, score.late)
+
     if (score.excused) {
-        return (`Exc`)
+        return (`ex !`)
     }
 
-    if (score.missing) {
-        return('Mi')
+    if (score.missing | rounded_score == 0) {
+        return('mi !ex')
     }
 
     if (score.late) {
-        return(`${rounded_score} La`)
+        return(`${rounded_score} la !ex`)
     }
 
     return(`${rounded_score} !`) // score is not exc, missing, late in canvas
