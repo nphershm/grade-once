@@ -154,9 +154,9 @@ async function getAssignments(course_id) {
         page++;
     }
 
-    // add outcome_assignment
-    let outcome_assignment = await getOutcomeAssignment(course_id)
-    assignments.push(outcome_assignment)
+    // Remove Overall Outcomes from App (comment both lines below)
+    // let outcome_assignment = await getOutcomeAssignment(course_id)
+    // assignments.push(outcome_assignment)
 
     assignments = assignments.reverse() // most recent first.
     console.log(`Assignments found: ${assignments.length}`)
