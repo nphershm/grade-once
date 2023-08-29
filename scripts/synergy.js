@@ -83,13 +83,14 @@ const add_comment_codes_to_score = (score, roundUpFrom) => {
     }
 
     // console.log('my_score and rounded_score', my_score, rounded_score)
-
+    
     console.log('Testing score values',score,score.excused, score.missing, score.late)
 
     if (score.excused) {
-        return (`ex !`)
+        return (`! ex`)
     }
 
+    // TODO fix handling of rounded_score. Move to options - give option of 0 == N or Missing (for non behavior targets)
     if (score.missing | rounded_score == 0) {
         return('mi !ex')
     }
@@ -98,7 +99,7 @@ const add_comment_codes_to_score = (score, roundUpFrom) => {
         return(`${rounded_score} la !ex`)
     }
 
-    return(`${rounded_score} !`) // score is not exc, missing, late in canvas
+    return(`${rounded_score} ! !ex`) // score is not exc, missing, late in canvas
 }
 
 function getScore(scores, id) {
