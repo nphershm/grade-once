@@ -11,7 +11,7 @@ Once Canvas data is fetched it is updated and sent to service_worker (background
 2. Testing app in real gradebook environments
 
 # Changelog
-v1.1021 updates handling of assignment status missing, late, excused
+v1.103 updates handling of assignment status missing, late, excused. Fixes issues handling excused, and clearing existing comments and codes when no longer missing, excused or late.
 
 v1.101 provides link to Options from bottom of popup
 
