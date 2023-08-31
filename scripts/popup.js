@@ -318,13 +318,20 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
             if ('rubric_assessment' in s) {
                 Object.keys(s.rubric_assessment).forEach((r) => {
                     if (r == rubric_id) {
+                        let points = ''
+                        if (Object.keys(s.rubric_assessment[r]).includes('points')) {
+                            points = s.rubric_assessment[r].points
+                        } else {
+                            console.log(`Student ${s.canvas_id} / ${s.synergy_id} has no points for rubric_id ${r}`)
+                        }
+
                         score = {
                             'course_id': s.course_id,
                             'canvas_id': s.canvas_id,
                             'synergy_id': s.synergy_id,
                             'assign_id': s.assign_id,
                             'rubric_id' : rubric_id,
-                            'score': s.rubric_assessment[r].points,
+                            'score': points,
                             'excused': s.excused,
                             'late' : s.late,
                             'missing': s.missing,
@@ -356,6 +363,7 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
         }
     })
 
+    console.log('popup found scores',scores)
     //console.log(`ALERT: calling use_fake_synergy_ids to swap sis_nums to match syntrn - fake sis_nums... remove in production!`)
     //scores = use_fake_synergy_ids(scores)
     return scores

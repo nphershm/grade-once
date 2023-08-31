@@ -84,12 +84,22 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
             if ('rubric_assessment' in s) {
                 Object.keys(s.rubric_assessment).forEach((r) => {
                     if (r == rubric_id) {
+
+                        console.log(`s.rubric_assessment[r] has keys ${Object.keys(s.rubric_assessment[r])}`)
+
+                        let points = ''
+                        if (Object.keys(s.rubric_assessment[r]).includes('points')) {
+                            points = s.rubric_assessment[r].points
+                        } else {
+                            console.log(`Student ${s.canvas_id} / ${s.synergy_id} has no points for rubric_id ${r}`)
+                        }
+
                         score = {
                             'canvas_id': s.canvas_id,
                             'synergy_id': s.synergy_id,
                             'assign_id': s.assign_id,
                             'rubric_id' : rubric_id,
-                            'score': s.rubric_assessment[r].points,
+                            'score': points,
                             'excused': s.excused,
                             'late' : s.late,
                             'missing':s.missing,

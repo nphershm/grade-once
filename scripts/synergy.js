@@ -84,14 +84,14 @@ const add_comment_codes_to_score = (score, roundUpFrom) => {
 
     // console.log('my_score and rounded_score', my_score, rounded_score)
     
-    console.log('Testing score values',score,score.excused, score.missing, score.late)
+    console.log('Testing score values',score,rounded_score, score.excused, score.missing, score.late)
 
     if (score.excused) {
         return (`! ex`)
     }
 
     // TODO fix handling of rounded_score. Move to options - give option of 0 == N or Missing (for non behavior targets)
-    if (score.missing | rounded_score == 0) {
+    if (score.missing | rounded_score === 0) {
         return('mi !ex')
     }
 
