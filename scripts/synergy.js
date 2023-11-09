@@ -84,7 +84,7 @@ const add_comment_codes_to_score = (score, roundUpFrom) => {
 
     // console.log('my_score and rounded_score', my_score, rounded_score)
     
-    console.log('Testing score values',score,rounded_score, score.excused, score.missing, score.late)
+    // console.log('Testing score values',score,rounded_score, score.excused, score.missing, score.late)
 
     if (score.excused) {
         return (`! ex`)
@@ -201,7 +201,7 @@ async function synergy_paste(scores, roundUpFrom) {
             )
 
         } else {
-            // console.log(`Uh oh... no match for ${id}`)
+            console.log(`No score found for synergy_id: ${id}`)
         }
     })
 

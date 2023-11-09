@@ -326,30 +326,30 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
                         }
 
                         score = {
-                            'course_id': s.course_id,
-                            'canvas_id': s.canvas_id,
                             'synergy_id': s.synergy_id,
-                            'assign_id': s.assign_id,
                             'rubric_id' : rubric_id,
                             'score': points,
                             'excused': s.excused,
                             'late' : s.late,
-                            'missing': s.missing,
+                            'missing':s.missing,
+                            'course_id': s.course_id,
+                            'canvas_id': s.canvas_id,
+                            'assign_id': s.assign_id,
                             'grading_per': s.grading_per,
                         }
                     }
                 })
             } else if (s.excused | s.missing) {
                 score = {
-                    'course_id': s.course_id,
-                    'canvas_id': s.canvas_id,
                     'synergy_id': s.synergy_id,
-                    'assign_id': s.assign_id,
                     'rubric_id' : rubric_id,
                     'score': '',
                     'excused': s.excused,
                     'late' : s.late,
                     'missing': s.missing,
+                    'course_id': s.course_id,
+                    'canvas_id': s.canvas_id,
+                    'assign_id': s.assign_id,
                     'grading_per': s.grading_per,
                 }    
             }
@@ -547,7 +547,7 @@ function update_rubric_list(assignments, submissions) {
     // show rubrics for assignment
     $('div#rubrics_overview').html("<h4>Submissions/Scores for ALT's</h4><ul></ul>")
     rubrics.forEach((r, index) => {
-        let scores = getScoresFromSubmissionsByRubricId(submissions, r.id)
+        let scores = getScoresFromSubmissionsByRubricId(submissions, r.id) // counts the scores for each alt.
         $('div#rubrics_overview ul').append($('<li></li>')
         .html(`<b>${r.alt_code}</b> - ${r.alt_text} (<em>${scores.length} scores found</em>)`))
     })

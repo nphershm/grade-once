@@ -85,28 +85,43 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
                 Object.keys(s.rubric_assessment).forEach((r) => {
                     if (r == rubric_id) {
 
-                        console.log(`s.rubric_assessment[r] has keys ${Object.keys(s.rubric_assessment[r])}`)
+                        // console.log(`s.rubric_assessment[r] has keys ${Object.keys(s.rubric_assessment[r])}`)
 
                         let points = ''
                         if (Object.keys(s.rubric_assessment[r]).includes('points')) {
                             points = s.rubric_assessment[r].points
                         } else {
                             console.log(`Student ${s.canvas_id} / ${s.synergy_id} has no points for rubric_id ${r}`)
+                            console.log('submission:',s)
                         }
 
                         score = {
-                            'canvas_id': s.canvas_id,
                             'synergy_id': s.synergy_id,
-                            'assign_id': s.assign_id,
                             'rubric_id' : rubric_id,
                             'score': points,
                             'excused': s.excused,
                             'late' : s.late,
                             'missing':s.missing,
+                            'course_id': s.course_id,
+                            'canvas_id': s.canvas_id,
+                            'assign_id': s.assign_id,
                             'grading_per': s.grading_per,
                         }
                     }
                 })
+            } else if (s.excused | s.missing) {
+                score = {
+                    'synergy_id': s.synergy_id,
+                    'rubric_id' : rubric_id,
+                    'score': '',
+                    'excused': s.excused,
+                    'late' : s.late,
+                    'missing': s.missing,
+                    'course_id': s.course_id,
+                    'canvas_id': s.canvas_id,
+                    'assign_id': s.assign_id,
+                    'grading_per': s.grading_per,
+                }    
             }
         } catch (e) {
             console.log(`Error on score extract ${e}`)
@@ -401,8 +416,8 @@ function mainListener(request, sender, sendResponse) {
     if (request.from == 'synergy.js' & request.to == 'background.js' & request.title == 'inject') {
         // Process script inject...
         // console.log(`Received inject request: ${request.injectScript}`);
-        console.log(`Request contains: ${JSON.stringify(request)}`)
-        console.log(`Sending tab: ${sender.tab.id}`)
+        // console.log(`Request contains: ${JSON.stringify(request)}`)
+        // console.log(`Sending tab: ${sender.tab.id}`)
         chrome.scripting.executeScript({
             world: 'MAIN',
             args: [request.score, request.synergy_id, request.row, request.col], // score, sis_number, row_index, col_index
