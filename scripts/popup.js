@@ -217,19 +217,20 @@ const getSynergyId = (students, canvas_id) => {
     console.log(`No Synergy Match for Canvas ID ${canvas_id}`)
 }
 
-const add_synergy_id = (scores, students) => {
+const add_synergy_id = (submissions, students) => {
     console.log(`Adding sis_numbers to students`)
-    console.log(scores)
+    console.log(submissions)
     console.log(students)
-    scores.forEach((s) => {
+    submissions.forEach((s) => {
         students.forEach((t) => {
             if (s.canvas_id == t.canvas_id) {
                 s.synergy_id = t.synergy_id
                 s.short_name = t.short_name
+                s.sortable_name = t.sortable_name
             }
         })
     })
-    return(scores)
+    return(submissions)
 }
 
 async function getSubmissions(course_id, assignments, assign_id) {
@@ -377,6 +378,7 @@ async function getSubmissions(course_id, assignments, assign_id) {
 function countScoresFromSubmissionsByRubricId(submissions, rubric_id) {
     // submissions objects.keys = {assign_id, canvas_id, excused, grading_per, late, rubric_assessment{}, synergy_id}
     let rubric_scores = []
+    let entered_scores = []
     let no_scores = []
     let missing = []
     let late = []
@@ -385,6 +387,7 @@ function countScoresFromSubmissionsByRubricId(submissions, rubric_id) {
 
     let summary = {
         'rubric_scores': rubric_scores,
+        'entered_score': entered_scores,
         'no_scores': no_scores,
         'missing': missing,
         'late': late,
@@ -399,9 +402,6 @@ function countScoresFromSubmissionsByRubricId(submissions, rubric_id) {
 
     
     submissions.forEach((s) => {
-
-        let student_str = `${s.short_name} / ${s.synergy_id} / ${s.canvas_id}`
-
         try {
             // when scores were marked excused there may not be a rubric attached...
             if ('rubric_assessment' in s) {
@@ -410,25 +410,29 @@ function countScoresFromSubmissionsByRubricId(submissions, rubric_id) {
                         let points = ''
                         if (Object.keys(s.rubric_assessment[r]).includes('points')) {
                             points = s.rubric_assessment[r].points
-                            rubric_scores.push(student_str)
+                            rubric_scores.push(s)
 
                         } else {
-                            console.log(`${student_str} has no points for rubric_id ${r}`)
-                            no_scores.push(student_str)
+                            console.log(`${s.short_name} has no points for rubric_id ${r}`)
+                            no_scores.push(s)
                         }
                     }
                 })
             } else if (s.excused) {
-                excused.push(student_str)
+                excused.push(s)
             } else if (s.missing) {
-                missing.push(student_str)
+                missing.push(s)
             } else {
-                console.log(`Student ${student_str} not counted. See submission object`,s)
-                skipped_entirely.push(student_str)
+                console.log(`Student ${s.short_name} not counted. See submission object`,s)
+                skipped_entirely.push(s)
             }
 
             if (s.late) {
-                late.push(student_str)
+                late.push(s)
+            }
+
+            if (s.entered_score) {
+                entered_scores.push(s)
             }
         } catch (e) {
             console.log(`Error on score count ${e}`)
@@ -439,8 +443,20 @@ function countScoresFromSubmissionsByRubricId(submissions, rubric_id) {
     console.log(`popup found ${rubric_scores.length} scores and ${missing.length} missing and ${skipped_entirely.length} results that won't paste.`)
     //console.log(`ALERT: calling use_fake_synergy_ids to swap sis_nums to match syntrn - fake sis_nums... remove in production!`)
     //scores = use_fake_synergy_ids(scores)
+
+    // sort all lists.
+
+    my_list_vars = [rubric_scores, entered_scores, no_scores, missing, late, excused, skipped_entirely]
+
+    my_list_vars.forEach((my_list) => {
+        my_list.sort(function(a, b) {
+            return a.sortable_name > b.sortable_name
+        })
+    })
+
     summary = {
         'rubric_scores': rubric_scores,
+        'entered_score': entered_scores,
         'no_scores': no_scores,
         'missing': missing,
         'late': late,
@@ -461,7 +477,8 @@ async function getStudents(course_id) {
         let student = {
             'canvas_id': e.id,
             'synergy_id': e.login_id,
-            'short_name': e.short_name
+            'short_name': e.short_name,
+            'sortable_name': e.sortable_name
         }
         students.push(student)
     })
@@ -630,12 +647,46 @@ function update_rubric_list(assignments, submissions) {
     // show rubrics for assignment
     $('div#rubrics_overview').html("<h4>Submissions/Scores for ALT's</h4><ul></ul>")
     rubrics.forEach((r, index) => {
-        //let scores = getScoresFromSubmissionsByRubricId(submissions, r.id) // counts the scores for each alt.
-        let summary = countScoresFromSubmissionsByRubricId(submissions, r.id) // summary = {rubric_score, missing_excused}
-        $('div#rubrics_overview ul').append($('<li></li>')
-        .html(`<b>${r.alt_code}</b> - ${r.alt_text} (<em>${summary.rubric_scores.length} scores and ${summary.missing.length} missing</em>)`))
+        /*
+            summary = {
+                'rubric_scores': rubric_scores,
+                'entered_score': entered_scores,
+                'no_scores': no_scores,
+                'missing': missing,
+                'late': late,
+                'excused': excused,
+                'skipped_entirely': skipped_entirely
+            }
+        */
+        let summary = countScoresFromSubmissionsByRubricId(submissions, r.id)
+        console.log('Summary from countScores...',summary)
+
+        let alert_student_total = 0
+        let my_list = []
+        let my_keys = ['no_scores', 'skipped_entirely']
+        my_keys.forEach((key) => {
+            alert_student_total += summary[key].length
+
+            summary[key].forEach((s) => {
+                my_list.push(`${s.sortable_name} (${s.synergy_id})`)
+            })
+        })
+
+        let my_text = `<ul><li><b>${alert_student_total} missing Rubric Scores</b>:<br />${my_list.sort().join("<br />")}</li>`
+        
+        let li = $('<li></li>').html(`<b>${r.alt_code}</b> - ${r.alt_text} (<em>${summary.rubric_scores.length} scores and ${summary.missing.length} missing</em>)`)
+        
+        li.append($('<ul></ul>').append(my_text))
+        // Object.keys(summary).forEach((key) => {
+        
+        
+        
+
+        $('div#rubrics_overview ul').append(li)
         // TODO create display for students with scores and missing scores...
-    })
+
+        
+    })   
 }
 
 async function process_assign_change(course_id, assignments) {
