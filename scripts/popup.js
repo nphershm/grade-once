@@ -225,6 +225,7 @@ const add_synergy_id = (scores, students) => {
         students.forEach((t) => {
             if (s.canvas_id == t.canvas_id) {
                 s.synergy_id = t.synergy_id
+                s.short_name = t.short_name
             }
         })
     })
@@ -304,15 +305,84 @@ async function getSubmissions(course_id, assignments, assign_id) {
     return(submissions)
 }
 
-function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
+// function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
+//     // submissions objects.keys = {assign_id, canvas_id, excused, grading_per, late, rubric_assessment{}, synergy_id}
+//     if (Object.keys(submissions).length == 0) {
+//         console.log(`No submissions`)
+//         return null
+//     }
+//     let scores = []
+//     submissions.forEach((s) => {
+//         let score = {}
+//         try {
+//             // when scores were marked excused there may not be a rubric attached...
+//             if ('rubric_assessment' in s) {
+//                 Object.keys(s.rubric_assessment).forEach((r) => {
+//                     if (r == rubric_id) {
+//                         let points = ''
+//                         if (Object.keys(s.rubric_assessment[r]).includes('points')) {
+//                             points = s.rubric_assessment[r].points
+//                         } else {
+//                             console.log(`Student ${s.canvas_id} / ${s.synergy_id} has no points for rubric_id ${r}`)
+//                         }
+
+//                         score = {
+//                             'synergy_id': s.synergy_id,
+//                             'rubric_id' : rubric_id,
+//                             'score': points,
+//                             'short_name': s.short_name, // wonder if we have access to short_name with submissions at this point...
+//                             'excused': s.excused,
+//                             'late' : s.late,
+//                             'missing':s.missing,
+//                             'course_id': s.course_id,
+//                             'canvas_id': s.canvas_id,
+//                             'assign_id': s.assign_id,
+//                             'grading_per': s.grading_per,
+//                         }
+//                     }
+//                 })
+//             } else if (s.excused | s.missing) {
+//                 score = {
+//                     'synergy_id': s.synergy_id,
+//                     'rubric_id' : rubric_id,
+//                     'score': '',
+//                     'short_name': s.short_name,
+//                     'excused': s.excused,
+//                     'late' : s.late,
+//                     'missing': s.missing,
+//                     'course_id': s.course_id,
+//                     'canvas_id': s.canvas_id,
+//                     'assign_id': s.assign_id,
+//                     'grading_per': s.grading_per,
+//                 }    
+//             }
+
+//         } catch (e) {
+//             console.log(`Error on score extract ${e}`)
+//             console.log(s)
+//         }
+//         if (Object.keys(score).length > 0) {
+//             scores.push(score)
+//         }
+//     })
+
+//     console.log('popup found scores',scores)
+//     //console.log(`ALERT: calling use_fake_synergy_ids to swap sis_nums to match syntrn - fake sis_nums... remove in production!`)
+//     //scores = use_fake_synergy_ids(scores)
+//     return scores
+// }
+
+function countScoresFromSubmissionsByRubricId(submissions, rubric_id) {
     // submissions objects.keys = {assign_id, canvas_id, excused, grading_per, late, rubric_assessment{}, synergy_id}
+    let scores_n = 0
+    let mi_ex_n = 0
     if (Object.keys(submissions).length == 0) {
         console.log(`No submissions`)
-        return null
+        return scores_n
     }
-    let scores = []
+
+    
     submissions.forEach((s) => {
-        let score = {}
         try {
             // when scores were marked excused there may not be a rubric attached...
             if ('rubric_assessment' in s) {
@@ -321,52 +391,33 @@ function getScoresFromSubmissionsByRubricId(submissions, rubric_id) {
                         let points = ''
                         if (Object.keys(s.rubric_assessment[r]).includes('points')) {
                             points = s.rubric_assessment[r].points
-                        } else {
-                            console.log(`Student ${s.canvas_id} / ${s.synergy_id} has no points for rubric_id ${r}`)
-                        }
+                            scores_n = scores_n + 1
 
-                        score = {
-                            'synergy_id': s.synergy_id,
-                            'rubric_id' : rubric_id,
-                            'score': points,
-                            'excused': s.excused,
-                            'late' : s.late,
-                            'missing':s.missing,
-                            'course_id': s.course_id,
-                            'canvas_id': s.canvas_id,
-                            'assign_id': s.assign_id,
-                            'grading_per': s.grading_per,
+                        } else {
+                            console.log(`Student ${s.short_name} / ${s.synergy_id} has no points for rubric_id ${r}`)
                         }
                     }
                 })
             } else if (s.excused | s.missing) {
-                score = {
-                    'synergy_id': s.synergy_id,
-                    'rubric_id' : rubric_id,
-                    'score': '',
-                    'excused': s.excused,
-                    'late' : s.late,
-                    'missing': s.missing,
-                    'course_id': s.course_id,
-                    'canvas_id': s.canvas_id,
-                    'assign_id': s.assign_id,
-                    'grading_per': s.grading_per,
-                }    
-            }
-
+                mi_ex_n = mi_ex_n + 1    
+            } else {
+                console.log(`Student ${s.short_name} / ${s.synergy_id} not counted. See submission object`,s)
+            } 
         } catch (e) {
-            console.log(`Error on score extract ${e}`)
+            console.log(`Error on score count ${e}`)
             console.log(s)
-        }
-        if (Object.keys(score).length > 0) {
-            scores.push(score)
         }
     })
 
-    console.log('popup found scores',scores)
+    console.log(`popup found ${scores_n} scores and ${mi_ex_n} missing/excused.`)
     //console.log(`ALERT: calling use_fake_synergy_ids to swap sis_nums to match syntrn - fake sis_nums... remove in production!`)
     //scores = use_fake_synergy_ids(scores)
-    return scores
+    let summary = {
+        'rubric_scores': scores_n,
+        'missing_excused': mi_ex_n
+    }
+
+    return summary
 }
 
 async function getStudents(course_id) {
@@ -378,7 +429,8 @@ async function getStudents(course_id) {
         // console.log(e.id, e.login_id, e.sortable_name, e.short_name)
         let student = {
             'canvas_id': e.id,
-            'synergy_id': e.login_id
+            'synergy_id': e.login_id,
+            'short_name': e.short_name
         }
         students.push(student)
     })
@@ -547,9 +599,10 @@ function update_rubric_list(assignments, submissions) {
     // show rubrics for assignment
     $('div#rubrics_overview').html("<h4>Submissions/Scores for ALT's</h4><ul></ul>")
     rubrics.forEach((r, index) => {
-        let scores = getScoresFromSubmissionsByRubricId(submissions, r.id) // counts the scores for each alt.
+        //let scores = getScoresFromSubmissionsByRubricId(submissions, r.id) // counts the scores for each alt.
+        let summary = countScoresFromSubmissionsByRubricId(submissions, r.id) // summary = {rubric_score, missing_excused}
         $('div#rubrics_overview ul').append($('<li></li>')
-        .html(`<b>${r.alt_code}</b> - ${r.alt_text} (<em>${scores.length} scores found</em>)`))
+        .html(`<b>${r.alt_code}</b> - ${r.alt_text} (<em>${summary.rubric_scores} scores and ${summary.missing_excused} missing/excused</em>)`))
     })
 }
 
