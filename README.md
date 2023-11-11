@@ -11,6 +11,8 @@ Once Canvas data is fetched it is updated and sent to service_worker (background
 2. Testing app in real gradebook environments
 
 # Changelog
+v1.104 updates popup providing a table showing all rubric scores, points, missing, late, and excused values available for paste. This is intended to help teachers understand what will be pasted and speed up any troubleshooting if a paste does not go as intended. If the extension doesn't seem to be working for you this table might help with determining if properly formatted **rubric scores** exist for students on a given assignment in Canvas.
+
 v1.103 updates handling of assignment status missing, late, excused. Fixes issues handling excused, and clearing existing comments and codes when no longer missing, excused or late.
 
 v1.101 provides link to Options from bottom of popup
