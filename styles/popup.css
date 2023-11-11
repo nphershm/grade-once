@@ -86,3 +86,21 @@ a, a:visited {
 a:hover {
     color: #6abcff;
 }
+
+table#submissions thead td.rotate > div {
+    /* transform: 
+        /* Magic Numbers */
+        /* translate(25px, 51px) */
+        /* 45 is really 360-45 */
+      rotate: 270deg;
+      width: 10px;
+  }
+
+  table#submissions thead td.rotate {
+    width: 10px !important;
+  }
+
+  /* table#submissions thead td.rotate {
+    width: 20px;
+    padding: 0;
+  } */
