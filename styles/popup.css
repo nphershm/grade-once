@@ -87,18 +87,70 @@ a:hover {
     color: #6abcff;
 }
 
+table#submissions {
+    width: 85% !important;
+}
+
+table#submissions thead {
+    height: 120px;
+    white-space: nowrap;
+    padding: 0 !important;
+}
+
+table#submissions thead td {
+    vertical-align: bottom;
+}
+
+table#submissions th:nth-child(n+2), td:nth-child(n+2) {
+    /* Set width on every column after first */
+    width: 10px !important;
+    padding: 0px !important;
+    margin: 0px !important;
+}
+
 table#submissions thead td.rotate > div {
-    /* transform: 
-        /* Magic Numbers */
-        /* translate(25px, 51px) */
-        /* 45 is really 360-45 */
-      rotate: 270deg;
-      width: 10px;
+    transform: translateX(10px) rotate(-90deg);
+    transform-origin: bottom left;
+    width: 20px !important;
   }
 
   table#submissions thead td.rotate {
-    width: 10px !important;
+    width: 20px !important;
+    padding-right: 0px !important;
+    text-align: right;
   }
+
+  table#submissions tr td:nth-last-child(4) {
+    color: #ffc400;
+  }
+
+  .point_note {
+    color: #ffc400;
+  }
+
+  div#submissions_length {
+    float: left;
+    width: 200px;
+  }
+
+  div#submissions_filter {
+    margin-top: 0;
+    float: right;
+    width: 200px;
+  }
+
+  div#submissions_filter input {
+    
+    width: 100px;
+  }
+
+table#submissions td.undefined {
+    color: #ff47d4;
+}
+  
+  /* table#submission thead {
+    height: 6px !important;
+  } */
 
   /* table#submissions thead td.rotate {
     width: 20px;

@@ -622,7 +622,7 @@ function update_submissions_overview(submissions) {
     try {
         if (submissions.length > 0) {
             let assign_name = getAssignmentNameFromSubmissions(submissions)
-            $('div#assign_submissions').html(`<p>Found ${submissions.length} submissions for ${assign_name}.</p>`)
+            $('div#assign_submissions').html(`<p>Found ${submissions.length} submissions for <em>${assign_name}</em>. The table below can be useful to see marks for this assignment that will be pasted.</p>`)
         } else {
             $('div#assign_submissions').html(`<p>🥹 No submissions found 🥹</p>`)
         }
@@ -648,15 +648,15 @@ function makeSubmissionsTable(submissions, rubrics) {
     my_table = `<table id="submissions">\n`
     my_table += '<thead><tr><td>Name</td>'
     rubrics.forEach((r) => {
-        my_table += `<td class="rotate"><div>${r.alt_code}</div></td>`
+        my_table += `<td class="rotate"><div>${r.alt_code.slice(0,20)}</div></td>`
     })
-    let my_cols = ['points','missing','late','excused']
+    let my_cols = ['points*','missing','late','excused']
     my_cols.forEach((col) => {
         my_table += `<td class="rotate"><div>${col}</div></td>`
     })
     my_table += `</tr></thead>\n<tbody>`
     submissions.forEach((s) => {
-        my_table += `<tr><td>${s.sortable_name}</td>`
+        my_table += `<tr><td>${s.sortable_name.slice(0,35)}</td>`
         if ('rubric_assessment' in s) {
             
             rubrics.forEach((r) =>{
@@ -665,8 +665,13 @@ function makeSubmissionsTable(submissions, rubrics) {
                     rubric_score = s.rubric_assessment[r.id].points
                 } catch(e) {
                     console.log(`Error parsing rubric ${e}`)
+                } 
+
+                if (rubric_score == undefined) {
+                    my_table += `<td class="undefined">???</td>`
+                } else {
+                    my_table += `<td>${rubric_score}</td>`
                 }
-                my_table += `<td>${rubric_score}</td>`
         })
         } else {
             rubrics.forEach((r) => {
@@ -674,18 +679,37 @@ function makeSubmissionsTable(submissions, rubrics) {
                 my_table += '<td></td>'
             })
         }
+        
+        if (s.entered_score == null) {
+            my_table += `<td></td>`
+        } else {
+            my_table += `<td>${s.entered_score}</td>`
+        }
 
-        my_table += `<td>${s.entered_score}</td><td>${s.missing}</td><td>${s.late}</td><td>${s.excused}</td></tr>`
+        // change look of missing/late/excused
+        let my_vals = [s.missing, s.late, s.excused]
+        my_vals.forEach((val) => {
+            let show = ''
+            if (val === true) {
+                show = '&#x2713;'
+                console.log('Submission:',s,'my_vals:',val,'showing',show)
+            }
+            my_table += `<td>${show}</td>`
+        })
+
+        my_table += `</tr>`
     })
 
     my_table += '</tbody></table>'
 
     $('div#assign_submissions').append(my_table)
     var table = new DataTable('table#submissions', {
-        order: [[1, 'asc']]
+        order: [[0, 'asc']],
     })
 
     $('table#submissions').addClass('display compact')
+
+    $('div#assign_submissions').append($('<p><b>Points*</b> will not be pasted by the extension, make sure to enter a rubric score.</p>').addClass('point_note'))
 
     // table.columns.adjust().draw()
 
@@ -715,7 +739,7 @@ function update_rubric_list(assignments, submissions) {
         let summary = countScoresFromSubmissionsByRubricId(submissions, r.id)
         console.log('Summary from countScores...',summary)
 
-        $('div#rubrics_overview').append('<li></li>').html(`<b>${r.alt_code}</b> - ${r.alt_text} (<em>${summary.rubric_scores.length} scores and ${summary.missing.length} missing</em>)`)
+        $('div#rubrics_overview ul').append($('<li></li>').html(`<b>${r.alt_code}</b> - ${r.alt_text} (<em>${summary.rubric_scores.length} scores and ${summary.missing.length} missing</em>)`))
 
         // let alert_student_total = 0
         // let my_list = []
@@ -736,7 +760,6 @@ function update_rubric_list(assignments, submissions) {
 
         // See https://datatables.net/examples/basic_init/table_sorting.html
 
-        
     })   
 }
 
