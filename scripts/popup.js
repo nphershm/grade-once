@@ -218,19 +218,29 @@ const getSynergyId = (students, canvas_id) => {
 }
 
 const add_synergy_id = (submissions, students) => {
-    console.log(`Adding sis_numbers to students`)
-    console.log(submissions)
-    console.log(students)
+    console.log(`Adding student_info to submissions`, submissions)
+    console.log('students',students)
+    matched_submissions = []
     submissions.forEach((s) => {
+        // console.log('Adding syn_id for submission',s)
+        let match = false
         students.forEach((t) => {
             if (s.canvas_id == t.canvas_id) {
+                match = true
                 s.synergy_id = t.synergy_id
                 s.short_name = t.short_name
                 s.sortable_name = t.sortable_name
+                s.period = t.period
+
+                // add submission to matched_submissions
+                matched_submissions.push(s)
             }
         })
+        if (!match) {
+            console.log('No match for canvas_id',s.canvas_id,'submission',s)
+        }
     })
-    return(submissions)
+    return(matched_submissions)
 }
 
 async function getSubmissions(course_id, assignments, assign_id) {
@@ -468,21 +478,40 @@ function countScoresFromSubmissionsByRubricId(submissions, rubric_id) {
 }
 
 async function getStudents(course_id) {
-    let res = await fetch(`${base_url}/courses/${course_id}/students`)
+    // let res = await fetch(`${base_url}/courses/${course_id}/students`)
+    let res = await fetch(`${base_url}/api/v1/courses/${course_id}/sections?include[]=students`)
+
     let data = await JSON.parse(await res.text())
     let students = []
     // console.log(data[5]);
-    data.forEach((e) => {
-        // console.log(e.id, e.login_id, e.sortable_name, e.short_name)
-        let student = {
-            'canvas_id': e.id,
-            'synergy_id': e.login_id,
-            'short_name': e.short_name,
-            'sortable_name': e.sortable_name
+    data.forEach((s) => {
+
+        let period = ''
+        try {
+            period = s.name.match(/Per\.\s(\d+)/)[1]
+        } catch(e) {
+            console.log(`Couldn't extract period from section ${s.name}`)
         }
-        students.push(student)
+        if (!period) {
+            period = ''
+        }
+
+        console.log('section',s,'has period',period)
+
+        s.students.forEach((e) => {
+
+            // console.log(e.id, e.login_id, e.sortable_name, e.short_name)
+            let student = {
+                'canvas_id': e.id,
+                'synergy_id': e.login_id,
+                'short_name': e.short_name,
+                'sortable_name': e.sortable_name,
+                'period': period
+            }
+            students.push(student)
+        })
     })
-    console.log(`Students found: ${students.length}`)
+    console.log(`Students found: ${students.length}`, students)
     // console.log(students[3])
     return(students)
 }
@@ -649,7 +678,7 @@ function makeSubmissionsTable(submissions, rubrics) {
     console.table(rubrics)
     console.log(`base_url: ${base_url}`)
     my_table = `<table id="submissions">\n`
-    my_table += '<thead><tr><td class="rotate"><div>synergy_id</div></td><td class="rotate"><div>Name</div></td>'
+    my_table += '<thead><tr><td class="rotate"><div>Period</div></td><td class="rotate"><div>synergy_id</div></td><td class="rotate"><div>Name</div></td>'
     rubrics.forEach((r) => {
         my_table += `<td class="rotate"><div>${r.alt_code.slice(0,30)}</div></td>`
     })
@@ -659,8 +688,10 @@ function makeSubmissionsTable(submissions, rubrics) {
     })
     my_table += `</tr></thead>\n<tbody>`
     submissions.forEach((s) => {
+
+        // console.log('adding syn_id for submission',s)
         //id
-        my_table += `<tr><td>${s.synergy_id.slice(0,6)}</td>`
+        my_table += `<tr><td>${s.period}</td><td>${s.synergy_id.slice(0,6)}</td>`
         //name + link to speedGrade
         my_table += `<td><a target=_blank href="${base_url}/courses/${s.course_id}/gradebook/speed_grader?assignment_id=${s.assign_id}&student_id=${s.canvas_id}">${s.sortable_name.slice(0,35)}</a></td>`
 
@@ -714,9 +745,9 @@ function makeSubmissionsTable(submissions, rubrics) {
 
     $('div#assign_submissions').append(my_table)
     var table = new DataTable('table#submissions', {
-        order: [1, 'asc'],
+        order: [[0, 'asc'],[2, 'asc']],
         pageLength: -1, //-1 means "all" :)
-        lengthMenu: [[25,50,100,-1], [10, 25, 100, "All"]]
+        lengthMenu: [[-1, 50, 10], ["All", 50, 10]]
         // scrollY: "300px",
         // scrollCollapse: true,
         // paging: false
