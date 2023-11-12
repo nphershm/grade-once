@@ -645,18 +645,25 @@ function makeSubmissionsTable(submissions, rubrics) {
     // submissions may have scores for rubrics but maybe not...
     //table headers: sortable_name, r1, r2,..., r_n, entered_score, missing, late, excused
     console.log(`Making submissions table with ${submissions.length} submissions and ${rubrics.length} rubrics.`)
+    console.table(submissions)
+    console.table(rubrics)
+    console.log(`base_url: ${base_url}`)
     my_table = `<table id="submissions">\n`
-    my_table += '<thead><tr><td>Name</td>'
+    my_table += '<thead><tr><td class="rotate"><div>synergy_id</div></td><td class="rotate"><div>Name</div></td>'
     rubrics.forEach((r) => {
-        my_table += `<td class="rotate"><div>${r.alt_code.slice(0,20)}</div></td>`
+        my_table += `<td class="rotate"><div>${r.alt_code.slice(0,30)}</div></td>`
     })
-    let my_cols = ['points*','missing','late','excused']
+    let my_cols = ['missing','late','excused','points*']
     my_cols.forEach((col) => {
         my_table += `<td class="rotate"><div>${col}</div></td>`
     })
     my_table += `</tr></thead>\n<tbody>`
     submissions.forEach((s) => {
-        my_table += `<tr><td>${s.sortable_name.slice(0,35)}</td>`
+        //id
+        my_table += `<tr><td>${s.synergy_id.slice(0,6)}</td>`
+        //name + link to speedGrade
+        my_table += `<td><a target=_blank href="${base_url}/courses/${s.course_id}/gradebook/speed_grader?assignment_id=${s.assign_id}&student_id=${s.canvas_id}">${s.sortable_name.slice(0,35)}</a></td>`
+
         if ('rubric_assessment' in s) {
             
             rubrics.forEach((r) =>{
@@ -680,11 +687,7 @@ function makeSubmissionsTable(submissions, rubrics) {
             })
         }
         
-        if (s.entered_score == null) {
-            my_table += `<td></td>`
-        } else {
-            my_table += `<td>${s.entered_score}</td>`
-        }
+        
 
         // change look of missing/late/excused
         let my_vals = [s.missing, s.late, s.excused]
@@ -697,6 +700,13 @@ function makeSubmissionsTable(submissions, rubrics) {
             my_table += `<td>${show}</td>`
         })
 
+        /* points* */
+        if (s.entered_score == null) {
+            my_table += `<td></td>`
+        } else {
+            my_table += `<td>${s.entered_score}</td>`
+        }
+
         my_table += `</tr>`
     })
 
@@ -704,10 +714,15 @@ function makeSubmissionsTable(submissions, rubrics) {
 
     $('div#assign_submissions').append(my_table)
     var table = new DataTable('table#submissions', {
-        order: [[0, 'asc']],
+        order: [1, 'asc'],
+        pageLength: -1, //-1 means "all" :)
+        lengthMenu: [[25,50,100,-1], [10, 25, 100, "All"]]
+        // scrollY: "300px",
+        // scrollCollapse: true,
+        // paging: false
     })
 
-    $('table#submissions').addClass('display compact')
+    $('table#submissions').addClass('display compact stripe')
 
     $('div#assign_submissions').append($('<p><b>Points*</b> will not be pasted by the extension, make sure to enter a rubric score.</p>').addClass('point_note'))
 
