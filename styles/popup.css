@@ -1,5 +1,5 @@
 body {
-    width: 650px;
+    width: 700px;
     margin: 10px 10px 10px 20px;
     background:#4c4b4b;
     color: white;
@@ -39,7 +39,7 @@ button:hover {
 }
 
 div#assign_select {
-    width: 590px;
+    width: 100%;
     display: inline-block;
 }
 
@@ -75,7 +75,7 @@ div#processing img {
 }
 
 div#how_to {
-    width: 500px;
+    width: 100%;
     display: inline-block;
 }
 
@@ -176,11 +176,13 @@ table#submissions thead td.rotate > div {
 
   div#submissions_length {
     float: left;
+    margin-left: 7.5%;
     width: 200px;
   }
 
   div#submissions_filter {
     margin-top: 0;
+    margin-right: 7.5%;
     float: right;
     width: 200px;
   }
@@ -192,6 +194,10 @@ table#submissions thead td.rotate > div {
 
 table#submissions td.undefined {
     color: #f5ff39;
+}
+
+table#submissions tbody tr.even {
+  background-color: #404040 !important;
 }
   
   /* table#submission thead {

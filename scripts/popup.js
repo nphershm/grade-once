@@ -141,7 +141,7 @@ async function getAssignments(course_id) {
                 }
                 
                 // only include assignments that have defined rubrics.
-                if (assignment.use_rubric_for_grading | assignment.rubric != undefined) {
+                if ((assignment.use_rubric_for_grading | assignment.rubric != undefined) & e.published) {
                     assignments.push(assignment)
                 } else {
                     console.log(`Skipping ${assignment.name} because it does not use a rubric.`)
@@ -221,6 +221,7 @@ const add_synergy_id = (submissions, students) => {
     console.log(`Adding student_info to submissions`, submissions)
     console.log('students',students)
     matched_submissions = []
+    matched_submission_ids = []
     submissions.forEach((s) => {
         // console.log('Adding syn_id for submission',s)
         let match = false
@@ -233,7 +234,12 @@ const add_synergy_id = (submissions, students) => {
                 s.period = t.period
 
                 // add submission to matched_submissions
-                matched_submissions.push(s)
+                if (!matched_submission_ids.includes(s.synergy_id)) {
+                    matched_submissions.push(s)
+                    matched_submission_ids.push(s.synergy_id)
+                } else {
+                    console.log('duplicate student, not adding additional submission for student:',t)
+                }
             }
         })
         if (!match) {
@@ -251,6 +257,9 @@ async function getSubmissions(course_id, assignments, assign_id) {
     let page = 1
     let data_length = page_n
     let submissions = []
+
+    /* Why see multiple submissions...? */
+    // let canvas_ids = []
     let assignment = getAssignmentById(assignments, assign_id)
 
     if (assign_id == 'outcomes') {
@@ -258,10 +267,11 @@ async function getSubmissions(course_id, assignments, assign_id) {
     } else {
         while (data_length == page_n) {
             let url = `${base_url}/api/v1/courses/${course_id}/assignments/${assign_id}/submissions?include[]=rubric_assessment&page=${page}&per_page=${page_n}`
-            // console.log(`Fetching ${url}`)
+            console.log(`Fetching ${url}`)
             let res = await fetch(url)
             let text = await res.text()
             let data = await JSON.parse(text)
+            
             // console.log(data)
             data_length = data.length
             data.forEach((s) => {
@@ -283,6 +293,7 @@ async function getSubmissions(course_id, assignments, assign_id) {
                             'late' : s.late,
                             'missing': s.missing,
                             'grading_per': s.grading_period_id,
+                            'full_object': s
                         }
                     } else {
                         submission = {
@@ -297,6 +308,7 @@ async function getSubmissions(course_id, assignments, assign_id) {
                             'late' : s.late,
                             'missing': s.missing,
                             'grading_per': s.grading_period_id,
+                            'full_object': s
                         }
                     }
                 } catch (e) {
@@ -304,6 +316,18 @@ async function getSubmissions(course_id, assignments, assign_id) {
                 }
                 if (Object.keys(submission).length > 0) {
                     submissions.push(submission)
+                    
+                    // if (canvas_ids.includes(submission.canvas_id)) {
+                    //     console.log(`Already have a submission for c:${submission.canvas_id}... see submission:`,s)
+                    //     submissions.forEach((s2) => {
+                    //         if (s2.canvas_id == submission.canvas_id) {
+                    //             console.log('Previously pushed submission from same user: ',s2)
+                    //         }
+                    //     })
+                    // }
+                    // canvas_ids.push(submission.canvas_id)
+                    // // console.log('canvas_ids:',canvas_ids)
+
                 }
             });
             page++;
@@ -311,6 +335,7 @@ async function getSubmissions(course_id, assignments, assign_id) {
     }
     console.log(`Submissions found: ${submissions.length}`)
     submissions = add_synergy_id(submissions, students)
+    console.log(`after adding synergy... we have ${submissions.length} submissions`)
     // send submissions to background.
     send_to_background(submissions, 'submissions')
     update_submissions_overview(submissions)
@@ -651,7 +676,7 @@ function update_submissions_overview(submissions) {
     try {
         if (submissions.length > 0) {
             let assign_name = getAssignmentNameFromSubmissions(submissions)
-            $('div#assign_submissions').html(`<p>Found ${submissions.length} submissions for <em>${assign_name}</em>. The table below can be useful to see marks for this assignment that will be pasted.</p>`)
+            $('div#assign_submissions').html(`<p>Found ${submissions.length} submissions for <em>${assign_name}</em>.</p><p>The table below can be useful to see marks for this assignment that will be pasted. Click on a student's name to open a speedgrader tab and edit their scores.</p>`)
         } else {
             $('div#assign_submissions').html(`<p>🥹 No submissions found 🥹</p>`)
         }
